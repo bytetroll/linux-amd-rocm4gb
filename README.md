@@ -63,7 +63,9 @@ anchor. Keep those two values when another service must prove it is launching
 this exact patched artifact instead of the mutable `current` convenience link.
 `build-info.txt` records the pinned source, patch, build mode, server inclusion,
 GPU target, backend action, and copied backend digest; the manifest protects
-that record and every installed regular file.
+that record and every installed regular file. Payload permissions are
+normalized before hashing, so a permissive development umask cannot leave
+service code or shared libraries group/world writable.
 
 Then qualify a model with forced mmap and full GPU offload:
 

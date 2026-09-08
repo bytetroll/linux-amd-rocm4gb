@@ -122,7 +122,7 @@ done
 [[ "$gpu_target" =~ ^gfx[0-9a-f]+$ ]] || rocm4gb_die "invalid AMD GPU target: $gpu_target"
 [[ "$offline" == false || -n "$source_dir" ]] || rocm4gb_die '--offline requires --source-dir'
 
-for required in awk cmake c++ env find flock git grep install ldd ninja python3 readelf realpath sha256sum xargs; do
+for required in awk chmod cmake c++ env find flock git grep install ldd ninja python3 readelf realpath sha256sum xargs; do
     rocm4gb_require_command "$required"
 done
 
@@ -366,6 +366,13 @@ if ! grep -Eq '^[[:space:]]+ROCm[0-9]+:' "$stage_dir/device-smoke-test.txt"; the
     cat "$stage_dir/device-smoke-test.txt" >&2
     rocm4gb_die 'staged HIP backend did not expose a ROCm device'
 fi
+
+# Build tools honor the caller's umask, which is commonly 0002 on development
+# hosts. Normalize the immutable payload before hashing it so an attesting
+# service never has to trust group/world-writable code or libraries.
+find "$stage_dir" -type d -exec chmod 0755 {} +
+find "$stage_dir" -type f -perm /111 -exec chmod 0755 {} +
+find "$stage_dir" -type f ! -perm /111 -exec chmod 0644 {} +
 
 manifest_file="$work_root/manifest.sha256"
 (

@@ -10,6 +10,9 @@
   models.
 - Record server inclusion and copied-backend identity in `build-info.txt`, and
   print the immutable version root plus its full manifest digest.
+- Normalize installed directories, executables, and data before hashing so the
+  immutable payload contains no group/world-writable files under a permissive
+  caller umask.
 
 ## 0.1.0 — 2026-09-08
 
