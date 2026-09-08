@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.1 — 2026-09-08
+
+- Make single-resident llama.cpp router eviction and request admission atomic.
+- Queue and replay late requests for a model already reserved as an LRU victim.
+- Route `/models/load` through the capacity-aware scheduler and prevent stale
+  direct-load waiters from hanging across a same-name model reload.
+- Add a deterministic two-model handoff regression using llama.cpp's tiny test
+  models.
+- Record server inclusion and copied-backend identity in `build-info.txt`, and
+  print the immutable version root plus its full manifest digest.
+
 ## 0.1.0 — 2026-09-08
 
 - Pin llama.cpp b10469 (`666f8898a`).

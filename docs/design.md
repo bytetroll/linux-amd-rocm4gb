@@ -42,12 +42,35 @@ using async uploads for device ROCm0
 The first line may describe a small CPU-mapped context; qualification requires
 the second line for the ROCm model buffer.
 
+## Single-resident router safety
+
+The pinned llama.cpp router originally selected an idle LRU victim under its
+mutex, released the mutex, and only then stopped the child. A request could be
+admitted in that interval and be terminated with the victim. The local server
+extension records an `eviction_pending` reservation under the same mutex used
+to increment active request counts. Late requests cannot enter the retiring
+child: with autoload enabled they join the FIFO scheduler, wait for the model's
+next slot, and then execute; without autoload they receive a retryable service
+response. Direct load paths also track the reserved child identity so a reload
+of the same model cannot make an old eviction waiter hang indefinitely.
+
+This changes orchestration safety, not inference kernels or throughput. It is
+included because the reference deployment keeps checkpoints larger than the
+available simultaneous-residency budget in one two-model catalog.
+
 ## Isolation
 
 `install.sh` clones the exact source into a private temporary directory, checks
 out a detached pinned commit, verifies the patch hash, applies it after
 `git apply --check`, and builds out of tree. Artifacts are staged under a
 project-owned version directory and activated with a symbolic link.
+
+Before activation, every installed regular file is hashed into
+`manifest.sha256`. The full digest of that manifest determines the suffix of
+the immutable version directory and is printed alongside its canonical path.
+Consumers with a stricter trust boundary can pin both values, verify the
+manifest and `build-info.txt`, and execute the version-local launcher directly;
+they need not trust the mutable `current` link.
 
 Neither full nor reuse mode edits the source/backend supplied by the user.
 Reuse mode links or copies only `libggml-hip.so`, then runs `ldd -r` against the

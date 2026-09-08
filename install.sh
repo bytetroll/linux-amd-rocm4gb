@@ -6,13 +6,13 @@ script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 # shellcheck source=scripts/common.sh
 source "$script_dir/scripts/common.sh"
 
-readonly project_version='0.1.0'
+readonly project_version='0.1.1'
 readonly llama_repository='https://github.com/ggml-org/llama.cpp.git'
 readonly llama_commit='666f8898a25a2d5e86cd53ea4dfa4e24e4426439'
 readonly llama_tree='24dcdf0d96247e5e39a4ed18c6429eb5b35fd7b5'
 readonly llama_build='b10469'
 readonly patch_name='llama.cpp-b10469-staged-mmap.patch'
-readonly patch_sha256='5cac45f8b77c7a23296804019502f200e29a69c484373caf39bb09bb5ee97835'
+readonly patch_sha256='082ce61d9c2293960447016ce0f8d3ff6aeff9bbc318824089ec459640a25e77'
 readonly llama_license_sha256='94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d'
 
 mode='full'
@@ -219,6 +219,9 @@ actual_tree=$("${git_command[@]}" -C "$source_checkout" rev-parse 'HEAD^{tree}')
         1ad62ec289374fa0282e27fae17464fd48c6198f54ab30e3e2f5c8d684af8049 src/llama-model-loader.cpp \
         9368fc4f1420ee41c56af4c229e72dc7b0dad2b7a2c9bd391d5144145e73de3b src/llama-model-loader.h \
         7b8f526f1c468b1541fb9427264c63d7a2a6ca2dd0b42a08f58530a90f03ddef src/llama-model.cpp \
+        20c1373cacd1295993f90e2bef4a796efb353f96746d925f7f6f5798802b90ba tools/server/server-models.cpp \
+        b325e1eaac8c1738a9063fdc61043d10b364522c93c78b450a7695bf3d74a72f tools/server/server-models.h \
+        4c84ca508972f485a62bd9b8afc98227b816ea0966c8eb5cbb03dac75205dbfe tools/server/tests/unit/test_router.py \
         | sha256sum --check --quiet
 )
 git -C "$source_checkout" apply --check "$patch_file"
@@ -226,7 +229,12 @@ git -C "$source_checkout" apply "$patch_file"
 git -C "$source_checkout" diff --check
 actual_changed_files=$(git -C "$source_checkout" diff --name-only | sort)
 expected_changed_files=$(printf '%s\n' \
-    src/llama-model-loader.cpp src/llama-model-loader.h src/llama-model.cpp | sort)
+    src/llama-model-loader.cpp \
+    src/llama-model-loader.h \
+    src/llama-model.cpp \
+    tools/server/server-models.cpp \
+    tools/server/server-models.h \
+    tools/server/tests/unit/test_router.py | sort)
 [[ "$actual_changed_files" == "$expected_changed_files" ]] || {
     rocm4gb_die 'the patch changed files outside the pinned allowlist'
 }
@@ -236,6 +244,9 @@ expected_changed_files=$(printf '%s\n' \
         e389a8f63ff775f60524cc1a7758ba9d702c47cf6797cefd7b0eaa39049b8734 src/llama-model-loader.cpp \
         d2c5d2a5b94569bebe0fd8685d8b8249562c8fd1c48a848cc569f094d335a787 src/llama-model-loader.h \
         ed68fed8e92f66fff43a6a9837b4ef266b748b75ddeb32f18bcbdb720d16e4d1 src/llama-model.cpp \
+        4d6def543c07c462180de35289f78680ee236c39047c71321d61347a32b50319 tools/server/server-models.cpp \
+        27f47fc7d9f6364790629c983f85ed6e5dc1d6a302a1cfc11da428c46b3ce406 tools/server/server-models.h \
+        c2a61ab516bd341051a726b2b01b442f602389d900c88d66dc8d3ed64e537ca9 tools/server/tests/unit/test_router.py \
         | sha256sum --check --quiet
 )
 
@@ -319,7 +330,10 @@ if [[ -f "$stage_dir/libexec/libggml-hip.so" ]]; then
     fi
 fi
 
+backend_sha256=$(sha256sum "$stage_dir/libexec/libggml-hip.so" | awk '{print $1}')
+
 cat > "$stage_dir/build-info.txt" <<EOF
+schema_version=1
 project_version=$project_version
 llama_repository=$llama_repository
 llama_commit=$llama_commit
@@ -328,9 +342,11 @@ llama_build=$llama_build
 patch_sha256=$patch_sha256
 llama_license_sha256=$llama_license_sha256
 mode=$mode
+with_server=$with_server
 gpu_target=$gpu_target
 backend_action=$backend_action
 backend_dir=$backend_dir
+backend_sha256=$backend_sha256
 EOF
 
 # Exercise the exact launcher and persisted runtime path from a clean shell
@@ -360,7 +376,8 @@ manifest_file="$work_root/manifest.sha256"
 )
 install -m 0644 "$manifest_file" "$stage_dir/manifest.sha256"
 
-artifact_fingerprint=$(sha256sum "$stage_dir/manifest.sha256" | awk '{print substr($1, 1, 12)}')
+artifact_manifest_sha256=$(sha256sum "$stage_dir/manifest.sha256" | awk '{print $1}')
+artifact_fingerprint=${artifact_manifest_sha256:0:12}
 version_name="llama-$llama_build-staged-mmap-v1-$mode-$artifact_fingerprint"
 version_dir="$versions_dir/$version_name"
 [[ ! -e "$version_dir" ]] || {
@@ -404,5 +421,7 @@ if [[ "$create_links" == true ]]; then
 fi
 
 rocm4gb_note "installed $version_name under $version_dir"
+rocm4gb_note "manifest sha256: $artifact_manifest_sha256"
+rocm4gb_note "version root: $version_dir"
 rocm4gb_note "run: $prefix/current/bin/llama-rocm4gb --version"
 rocm4gb_note 'the original ROCm installation and llama.cpp binaries were not modified'

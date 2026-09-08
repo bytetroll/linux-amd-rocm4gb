@@ -7,6 +7,10 @@ request #26023, authored by liminfei-amd:
   https://github.com/ggml-org/llama.cpp/pull/26023
   https://github.com/ggml-org/llama.cpp/commit/f5f4f66675196809a4b816315cdc1173862b14a3
 
+The single-resident router eviction/admission hardening and its regression test
+in the same pinned patch are original linux-amd-rocm4gb project work by Nathan
+Young.
+
 llama.cpp is distributed under the MIT License:
 
   https://github.com/ggml-org/llama.cpp/blob/master/LICENSE

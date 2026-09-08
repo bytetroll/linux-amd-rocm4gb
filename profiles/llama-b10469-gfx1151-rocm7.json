@@ -9,7 +9,7 @@
   },
   "patch": {
     "path": "patches/llama.cpp-b10469-staged-mmap.patch",
-    "sha256": "5cac45f8b77c7a23296804019502f200e29a69c484373caf39bb09bb5ee97835",
+    "sha256": "082ce61d9c2293960447016ce0f8d3ff6aeff9bbc318824089ec459640a25e77",
     "upstream_pull_request": "https://github.com/ggml-org/llama.cpp/pull/26023",
     "upstream_commit": "f5f4f66675196809a4b816315cdc1173862b14a3",
     "upstream_author": "liminfei-amd"
@@ -29,6 +29,21 @@
       "path": "src/llama-model.cpp",
       "before_sha256": "7b8f526f1c468b1541fb9427264c63d7a2a6ca2dd0b42a08f58530a90f03ddef",
       "after_sha256": "ed68fed8e92f66fff43a6a9837b4ef266b748b75ddeb32f18bcbdb720d16e4d1"
+    },
+    {
+      "path": "tools/server/server-models.cpp",
+      "before_sha256": "20c1373cacd1295993f90e2bef4a796efb353f96746d925f7f6f5798802b90ba",
+      "after_sha256": "4d6def543c07c462180de35289f78680ee236c39047c71321d61347a32b50319"
+    },
+    {
+      "path": "tools/server/server-models.h",
+      "before_sha256": "b325e1eaac8c1738a9063fdc61043d10b364522c93c78b450a7695bf3d74a72f",
+      "after_sha256": "27f47fc7d9f6364790629c983f85ed6e5dc1d6a302a1cfc11da428c46b3ce406"
+    },
+    {
+      "path": "tools/server/tests/unit/test_router.py",
+      "before_sha256": "4c84ca508972f485a62bd9b8afc98227b816ea0966c8eb5cbb03dac75205dbfe",
+      "after_sha256": "c2a61ab516bd341051a726b2b01b442f602389d900c88d66dc8d3ed64e537ca9"
     }
   ],
   "defaults": {

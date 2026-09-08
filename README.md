@@ -10,6 +10,13 @@ of handing a huge file-backed mapping to HIP, qualifying full-iGPU loads stream
 tensor data through a small ring of pinned host buffers. This avoids the KFD SVM
 accounting path that can strand queues in `svm_range_restore_work`.
 
+When `llama-server` is requested, the same pinned patch also closes a router
+admission race found while qualifying two very large models with
+`--models-max 1`. Victim reservation and request admission now share one lock;
+a request that arrives for the retiring model queues and reloads it instead of
+being forwarded into a child that is already being stopped. The patch includes
+a deterministic regression for that handoff.
+
 This project never changes the kernel, sysfs, ROCm, or an existing `llama.cpp`
 installation. It builds a versioned copy and exposes it as `llama-rocm4gb`.
 
@@ -49,6 +56,14 @@ The installer is unprivileged. It defaults to
 `$HOME/.local/share/linux-amd-rocm4gb`) and creates a unique
 `$HOME/.local/bin/llama-rocm4gb` link when that path is available. It will not
 replace a regular file at that location.
+
+Each installation is content-addressed. At completion, the installer prints
+the immutable version root and the full SHA-256 of its `manifest.sha256` trust
+anchor. Keep those two values when another service must prove it is launching
+this exact patched artifact instead of the mutable `current` convenience link.
+`build-info.txt` records the pinned source, patch, build mode, server inclusion,
+GPU target, backend action, and copied backend digest; the manifest protects
+that record and every installed regular file.
 
 Then qualify a model with forced mmap and full GPU offload:
 
@@ -105,6 +120,8 @@ version independent at the cost of roughly 1.2 GiB.
 - No kernel modules, DKMS packages, boot changes, or ROCm replacement.
 - No mutation of the supplied source/backend directory.
 - Exact source commit, tree, license, patch, and changed-file hashes are pinned.
+- Single-resident router eviction reserves an idle victim atomically and never
+  terminates a child after admitting a new request to it.
 - Builds happen in a private temporary checkout and install atomically under a
   project-owned prefix.
 - Builds default to one parallel job and refuse to start above 70 °C; a Tctl

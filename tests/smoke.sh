@@ -147,7 +147,10 @@ if [[ -n "$source_dir" ]]; then
     expected_files=$(printf '%s\n' \
         src/llama-model-loader.cpp \
         src/llama-model-loader.h \
-        src/llama-model.cpp | sort)
+        src/llama-model.cpp \
+        tools/server/server-models.cpp \
+        tools/server/server-models.h \
+        tools/server/tests/unit/test_router.py | sort)
     [[ "$actual_files" == "$expected_files" ]]
     (
         cd "$patch_root/llama.cpp"
@@ -157,7 +160,13 @@ if [[ -n "$source_dir" ]]; then
             d2c5d2a5b94569bebe0fd8685d8b8249562c8fd1c48a848cc569f094d335a787 \
             src/llama-model-loader.h \
             ed68fed8e92f66fff43a6a9837b4ef266b748b75ddeb32f18bcbdb720d16e4d1 \
-            src/llama-model.cpp | sha256sum --check --quiet
+            src/llama-model.cpp \
+            4d6def543c07c462180de35289f78680ee236c39047c71321d61347a32b50319 \
+            tools/server/server-models.cpp \
+            27f47fc7d9f6364790629c983f85ed6e5dc1d6a302a1cfc11da428c46b3ce406 \
+            tools/server/server-models.h \
+            c2a61ab516bd341051a726b2b01b442f602389d900c88d66dc8d3ed64e537ca9 \
+            tools/server/tests/unit/test_router.py | sha256sum --check --quiet
     )
 fi
 
