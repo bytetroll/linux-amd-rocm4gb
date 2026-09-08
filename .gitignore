@@ -1,0 +1,8 @@
+.build/
+.cache/
+/results/
+*.log
+*.jsonl
+*.tmp
+__pycache__/
+*.pyc

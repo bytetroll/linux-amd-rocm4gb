@@ -1,0 +1,15 @@
+linux-amd-rocm4gb
+Copyright (c) 2026 Nathan Young
+
+The staged mmap upload change in patches/ is derived from llama.cpp pull
+request #26023, authored by liminfei-amd:
+
+  https://github.com/ggml-org/llama.cpp/pull/26023
+  https://github.com/ggml-org/llama.cpp/commit/f5f4f66675196809a4b816315cdc1173862b14a3
+
+llama.cpp is distributed under the MIT License:
+
+  https://github.com/ggml-org/llama.cpp/blob/master/LICENSE
+
+This project is independent community work. It is not affiliated with or
+endorsed by AMD or the llama.cpp maintainers.

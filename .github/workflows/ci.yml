@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  integrity-and-cpu-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build shellcheck
+
+      - name: Fetch pinned llama.cpp source
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/ggml-org/llama.cpp.git /tmp/llama.cpp
+          git -C /tmp/llama.cpp checkout --detach 666f8898a25a2d5e86cd53ea4dfa4e24e4426439
+
+      - name: Verify project and patch integrity
+        run: ./tests/smoke.sh --source-dir /tmp/llama.cpp
+
+      - name: Apply patch
+        run: git -C /tmp/llama.cpp apply "$GITHUB_WORKSPACE/patches/llama.cpp-b10469-staged-mmap.patch"
+
+      - name: Configure CPU-only ABI build
+        run: >-
+          cmake -S /tmp/llama.cpp -B /tmp/llama-build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=ON
+          -DGGML_BACKEND_DL=ON
+          -DGGML_HIP=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_CPU_ALL_VARIANTS=OFF
+          -DLLAMA_BUILD_TESTS=OFF
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_APP=OFF
+          -DLLAMA_BUILD_UI=OFF
+
+      - name: Build and smoke CLI
+        run: |
+          cmake --build /tmp/llama-build --target llama-cli -- -j2
+          /tmp/llama-build/bin/llama-cli --version

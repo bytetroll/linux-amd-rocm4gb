@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "name": "llama-b10469-gfx1151-rocm7",
+  "source": {
+    "repository": "https://github.com/ggml-org/llama.cpp.git",
+    "commit": "666f8898a25a2d5e86cd53ea4dfa4e24e4426439",
+    "tree": "24dcdf0d96247e5e39a4ed18c6429eb5b35fd7b5",
+    "license_sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d"
+  },
+  "patch": {
+    "path": "patches/llama.cpp-b10469-staged-mmap.patch",
+    "sha256": "5cac45f8b77c7a23296804019502f200e29a69c484373caf39bb09bb5ee97835",
+    "upstream_pull_request": "https://github.com/ggml-org/llama.cpp/pull/26023",
+    "upstream_commit": "f5f4f66675196809a4b816315cdc1173862b14a3",
+    "upstream_author": "liminfei-amd"
+  },
+  "files": [
+    {
+      "path": "src/llama-model-loader.cpp",
+      "before_sha256": "1ad62ec289374fa0282e27fae17464fd48c6198f54ab30e3e2f5c8d684af8049",
+      "after_sha256": "e389a8f63ff775f60524cc1a7758ba9d702c47cf6797cefd7b0eaa39049b8734"
+    },
+    {
+      "path": "src/llama-model-loader.h",
+      "before_sha256": "9368fc4f1420ee41c56af4c229e72dc7b0dad2b7a2c9bd391d5144145e73de3b",
+      "after_sha256": "d2c5d2a5b94569bebe0fd8685d8b8249562c8fd1c48a848cc569f094d335a787"
+    },
+    {
+      "path": "src/llama-model.cpp",
+      "before_sha256": "7b8f526f1c468b1541fb9427264c63d7a2a6ca2dd0b42a08f58530a90f03ddef",
+      "after_sha256": "ed68fed8e92f66fff43a6a9837b4ef266b748b75ddeb32f18bcbdb720d16e4d1"
+    }
+  ],
+  "defaults": {
+    "gpu_target": "gfx1151",
+    "thermal_warn_c": 75,
+    "thermal_critical_c": 90,
+    "verification_start_max_c": 65
+  }
+}
